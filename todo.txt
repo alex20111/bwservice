@@ -1,0 +1,14 @@
+Todo:
+services:
+	user
+	temperature
+	authentication
+
+
+create new VPS.
+Test PiModule to see if it works..  
+Transfer inventory to webService and change Ang project to access it.
+
+Done:
+remove H2 from project. POM .. done , mysql now works,, 
+
