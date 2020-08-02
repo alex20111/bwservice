@@ -11,6 +11,7 @@ import net.web.db.entity.Inventory;
 import net.web.db.entity.InventoryGroup;
 import net.web.db.entity.InventoryRef;
 import net.web.db.sql.InventorySql;
+import net.web.exception.ValidationException;
 
 
 public class InventoryManager {
@@ -104,8 +105,22 @@ public class InventoryManager {
 		
 		return groups;
 	}
-	public InventoryGroup addInvGroup(InventoryGroup ig) throws SQLException, ClassNotFoundException{
-		return sql.addInvGroup(ig);
+	public InventoryGroup addInvGroup(InventoryGroup ig) throws SQLException, ClassNotFoundException, ValidationException{
+		
+		InventoryGroup newGroup = null;
+		if (ig != null) {
+			
+			if (ig.getGroupName() != null && ig.getGroupName().trim().length() > 0) {
+				
+				newGroup = sql.addInvGroup(ig);
+				
+			}else {
+				throw new ValidationException("Group name is empty");
+			}			
+		}else {
+			throw new IllegalArgumentException("Inventory Group null");
+		}
+		return newGroup;
 	}
 	
 	public Inventory loadInventoryById(int id) throws SQLException, ClassNotFoundException{

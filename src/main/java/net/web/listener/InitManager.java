@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import net.web.common.Constants;
+import net.web.db.sql.InventorySql;
 import net.web.db.sql.UserSql;
 import net.web.manager.UserManager;
 
@@ -49,12 +50,14 @@ public class InitManager implements ServletContextListener    {
 ////			user2.setUserWeb(userWebList);
 ////			um.addUser(user2);
 //			
+			
+			InventorySql invSql = new InventorySql();
+			invSql.createTables();
 		} catch (ClassNotFoundException | SQLException |  IOException e) {
 			// TODO Auto-generated catch block
 			logger.error("error in init",  e);
 		}
-		
-		
+
 		
 		Constants.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 		

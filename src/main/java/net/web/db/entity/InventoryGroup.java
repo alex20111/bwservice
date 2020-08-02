@@ -66,4 +66,10 @@ public class InventoryGroup {
 		return create.toString();
 	}
 
+	@Override
+	public String toString() {
+		return "InventoryGroup [id=" + id + ", groupName=" + groupName + ", numberOfItems=" + numberOfItems
+				+ ", ownerId=" + ownerId + "]";
+	}
+
 }
