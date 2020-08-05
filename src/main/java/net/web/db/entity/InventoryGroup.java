@@ -2,6 +2,9 @@ package net.web.db.entity;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlTransient;
 
 public class InventoryGroup {
 
@@ -17,7 +20,10 @@ public class InventoryGroup {
 	private int id 				= -1;
 	private String groupName 	= "";		
 	private int numberOfItems 	= 0;	
+	@XmlTransient
 	private int ownerId 		= 0;
+	
+	private List<Inventory> invItems;
 
 	public InventoryGroup(){}
 
@@ -64,6 +70,14 @@ public class InventoryGroup {
 		create.append(")");
 
 		return create.toString();
+	}
+
+	public List<Inventory> getInvItems() {
+		return invItems;
+	}
+
+	public void setInvItems(List<Inventory> invItems) {
+		this.invItems = invItems;
 	}
 
 	@Override

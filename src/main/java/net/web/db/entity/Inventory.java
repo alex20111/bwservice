@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Inventory {
 
 	//thumbnail disk location
@@ -34,6 +36,7 @@ public class Inventory {
 	
 	//relation
 	private InventoryGroup group = null;
+	 @JsonProperty("references")
 	private List<InventoryRef> references;
 
 	public Inventory(){}
@@ -117,7 +120,7 @@ public class Inventory {
 		return "Inventory [id=" + id + ", name=" + name + ", qty=" + qty
 				+ ", category=" + category + ", details=" + details
 				+ ", groupId=" + groupId + ", ownerId=" + ownerId
-				+ "]";
+				+ " references= "+ ( this.references != null && !this.references.isEmpty() ? this.references : "empty ") + "]";
 	}
 
 }
