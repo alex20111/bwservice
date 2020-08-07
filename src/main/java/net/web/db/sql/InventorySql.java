@@ -384,13 +384,14 @@ public class InventorySql {
 
 	public void deleteGroup(InventoryGroup ig) throws SQLException, ClassNotFoundException{
 
+		logger.debug("Deleting group: " + ig);
 		DBConnection con = null;
 		try{
 			con = getConnection();
 
 			String query = "DELETE FROM " + InventoryGroup.TBL_NAME + " where " + InventoryGroup.ID + " = :id";
 
-			con.createSelectQuery(query)
+			 con.createSelectQuery(query)
 			.setParameter("id", ig.getId())
 			.delete();
 

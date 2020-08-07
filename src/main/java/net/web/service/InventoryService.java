@@ -3,6 +3,7 @@ package net.web.service;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,10 +72,14 @@ public class InventoryService {
 			//check if the user has access to edit the users..
 			if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
 				logger.debug("fetch inventory groups");
+				InventoryGroup ig = new InventoryGroup();
+				ig.setGroupName("All items");
 				InventoryManager im = new InventoryManager();
 
+				List<Inventory> invList = im.loadAllInventoryForUser(userReq.getId(), true);
 
-				return Response.ok().entity(msg).build();
+				ig.setInvItems(invList);
+				return Response.ok().entity(ig).build();
 			}
 			else {
 				msg = new Message("No Access", "User does not have permission");
@@ -170,41 +175,93 @@ public class InventoryService {
 
 		return Response.status(status).entity(msg).build();
 	}
-	//	@Path("addItem")
-	//	@POST
-	//	@Produces(MediaType.APPLICATION_JSON)
-	//	@Consumes(MediaType.APPLICATION_JSON)
-	//	@TokenValidation
-	//	public Response addItem() {
-	//		logger.debug("addItem");
-	//
-	//		Message msg = null;
-	//		Status status = Status.FORBIDDEN;
-	//		//		try {
-	//		//		//check if the user has access to edit the users..
-	//		//		if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
-	//		//			
-	//		//		}
-	//		//		
-	//		//	}catch(Exception ex) {
-	//		//		logger.error("error in adding user" , ex);
-	//		//		status = Status.INTERNAL_SERVER_ERROR;
-	//		//		msg = new Message("Server error", ex.getMessage());
-	//		//	}
-	//
-	//
-	//		return Response.status(status).entity(msg).build();
-	//	}
-	@Path("updateItem")
+	@Path("updateGroupName")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@TokenValidation
-	public Response updateItem() {
-		logger.debug("updateItem");
+	public Response updateGroupName(InventoryGroup invGrp) {
+		logger.debug("updateGroupName: " + invGrp);
 
 		Message msg = null;
 		Status status = Status.FORBIDDEN;
+		try {
+			User userReq = (User)servletRequest.getAttribute(Constants.USER_TOKEN);// contains id and username
+			//check if the user has access to edit the users..
+			if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
+				logger.debug("Has access.. updating group");
+
+				InventoryManager im = new InventoryManager();
+				invGrp.setOwnerId(userReq.getId());
+				im.updateInvGroup(invGrp);
+
+				logger.debug("new group created: " + invGrp);
+
+				return Response.ok().entity(invGrp).build();
+
+			}
+
+		}catch(Exception ex) {
+			logger.error("error in adding group user" , ex);
+			status = Status.INTERNAL_SERVER_ERROR;
+			msg = new Message("Server error", ex.getMessage());
+		}
+
+
+		return Response.status(status).entity(msg).build();
+	}
+	@Path("updateItem")
+	@POST
+	@Consumes({MediaType.MULTIPART_FORM_DATA})
+	@Produces(MediaType.APPLICATION_JSON)
+	@TokenValidation
+	public Response updateItem(  @FormDataParam("file") InputStream fileInputStream,
+			@FormDataParam("file") FormDataContentDisposition fileMetaData,
+			@FormDataParam("formField") String inv) throws Exception
+	{
+
+		logger.debug("updateItem: " + inv);
+
+		Message msg = null;
+		Status status = Status.FORBIDDEN;
+
+		if (inv == null || inv.trim().length() == 0) {
+			status = Status.BAD_REQUEST;			
+			msg = new Message("Validation", "Missing form");
+			return Response.status(status).entity(msg).build();	
+		}
+
+		try {
+			User userReq = (User)servletRequest.getAttribute(Constants.USER_TOKEN);// contains id and username
+			//check if the user has access to edit the users..
+			if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
+				logger.debug("Has access.. updating Inventory item");
+
+
+				ObjectMapper objectMapper = new ObjectMapper();
+
+				Inventory inventory = objectMapper.readValue(inv, Inventory.class);
+				inventory.setOwnerId(userReq.getId());
+				
+				if (fileInputStream != null && fileMetaData != null) {
+
+					inventory.setThumbBase64(imageToBase64(fileInputStream, fileMetaData));
+				}
+				
+				InventoryManager im = new InventoryManager();
+				im.update(inventory);
+				
+				msg = new Message("Success", "Item updated");
+				
+				return Response.ok().entity(msg).build();
+			}
+
+		}catch(Throwable ex) {
+			logger.error("error in adding group user" , ex);
+			status = Status.INTERNAL_SERVER_ERROR;
+			msg = new Message("Server error", ex.getMessage());
+		}
+
 		return Response.status(status).entity(msg).build();
 	}
 	/**
@@ -246,14 +303,11 @@ public class InventoryService {
 				msg = new Message("validation", "User group required");
 			}
 
-
 		}catch(Exception ex) {
 			logger.error("error in adding group user" , ex);
 			status = Status.INTERNAL_SERVER_ERROR;
 			msg = new Message("Server error", ex.getMessage());
 		}
-
-
 		return Response.status(status).entity(msg).build();
 
 	}
@@ -266,10 +320,7 @@ public class InventoryService {
 			@FormDataParam("file") FormDataContentDisposition fileMetaData,
 			@FormDataParam("formField") String inv) throws Exception
 	{
-
-
-		logger.debug("addInvItem: File: " + fileMetaData + "  formField: " + inv);		
-
+		logger.debug("addInvItem: File: " + fileMetaData + "  formField: " + inv);	
 
 		Message msg = null;
 		Status status = Status.FORBIDDEN;
@@ -294,29 +345,29 @@ public class InventoryService {
 
 				if (fileInputStream != null && fileMetaData != null) {
 
-					String UPLOAD_PATH = "c:\\temp\\"; //TODO TEMP DIR
-					String fileName = fileMetaData.getFileName() + UUID.randomUUID();				
-
-					File tumb = new File(UPLOAD_PATH + fileName);
-					int read = 0;
-					byte[] bytes = new byte[1024];
-
-					OutputStream out = new FileOutputStream(new File(UPLOAD_PATH + fileName));
-					while ((read = fileInputStream.read(bytes)) != -1) 
-					{
-						out.write(bytes, 0, read);
-					}
-					out.flush();
-					out.close();
+					//					String UPLOAD_PATH = "c:\\temp\\"; //TODO TEMP DIR
+					//					String fileName = fileMetaData.getFileName() + UUID.randomUUID();				
+					//
+					//					File tumb = new File(UPLOAD_PATH + fileName);
+					//					int read = 0;
+					//					byte[] bytes = new byte[1024];
+					//
+					//					OutputStream out = new FileOutputStream(new File(UPLOAD_PATH + fileName));
+					//					while ((read = fileInputStream.read(bytes)) != -1) 
+					//					{
+					//						out.write(bytes, 0, read);
+					//					}
+					//					out.flush();
+					//					out.close();
 
 					//then convert it to bitap
 					//encode it and save
-					BufferedImage bi = Scalr.resize(ImageIO.read(tumb), 100);
 
-					inventory.setThumbBase64(imgToBase64(bi));
-					
+
+					inventory.setThumbBase64(imageToBase64(fileInputStream, fileMetaData));
+					//
 					//then delete file
-					tumb.delete();
+					//					tumb.delete();
 				}
 
 				InventoryManager im = new InventoryManager();
@@ -331,11 +382,105 @@ public class InventoryService {
 			msg = new Message("Server error", ex.getMessage());
 		}
 
-
 		return Response.status(status).entity(msg).build();
 
-}
+	}
+	@Path("deleteGroup")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON )
+	@Consumes(MediaType.APPLICATION_JSON)
+	@TokenValidation
+	public Response deteleGroup(String groupId) {
+		logger.debug("deteleGroup: " + groupId);
 
+		Message msg = null;
+		Status status = Status.FORBIDDEN;
+		try {
+			User userReq = (User)servletRequest.getAttribute(Constants.USER_TOKEN);// contains id and username
+			//check if the user has access to edit the users..
+			if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
+				logger.debug("Has access.. deleting group");
+
+				InventoryManager im = new InventoryManager();
+
+				im.deleteGroup( Integer.parseInt(groupId),userReq.getId());
+
+				msg = new Message("success", "Group deleted");
+
+				return Response.ok().entity(msg).build();
+
+			}
+
+		}catch(Exception ex) {
+			logger.error("error in adding group user" , ex);
+			status = Status.INTERNAL_SERVER_ERROR;
+			msg = new Message("Server error", ex.getMessage());
+		}
+
+
+		return Response.status(status).entity(msg).build();
+	}
+	@Path("deleteItem")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@TokenValidation
+	public Response deteleItem(String itemId) {
+		logger.debug("deteleItem: " + itemId);
+
+		Message msg = null;
+		Status status = Status.FORBIDDEN;
+		try {
+			User userReq = (User)servletRequest.getAttribute(Constants.USER_TOKEN);// contains id and username
+			//check if the user has access to edit the users..
+			if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
+				logger.debug("Has access.. Deleting group");
+
+				InventoryManager im = new InventoryManager();
+				im.deleteItem(Integer.parseInt(itemId));
+
+				msg = new Message("success", "Item deleted");
+
+				return Response.ok(msg).build();
+
+			}
+		}catch(Exception ex) {
+			logger.error("error in adding group user" , ex);
+			status = Status.INTERNAL_SERVER_ERROR;
+			msg = new Message("Server error", ex.getMessage());
+		}
+
+
+		return Response.status(status).entity(msg).build();
+	}
+	private String imageToBase64(InputStream fileInputStream, FormDataContentDisposition fileMetaData) throws IOException {
+		String UPLOAD_PATH = "c:\\temp\\"; //TODO TEMP DIR
+		String fileName = fileMetaData.getFileName() + UUID.randomUUID();				
+
+		File tumb = new File(UPLOAD_PATH + fileName);
+		int read = 0;
+		byte[] bytes = new byte[1024];
+
+		OutputStream out = new FileOutputStream(new File(UPLOAD_PATH + fileName));
+		while ((read = fileInputStream.read(bytes)) != -1) 
+		{
+			out.write(bytes, 0, read);
+		}
+		out.flush();
+		out.close();
+
+		//then convert it to bitap
+		//encode it and save
+		BufferedImage bi = Scalr.resize(ImageIO.read(tumb), 100);
+
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		ImageIO.write(bi, "jpg", output);
+
+		//then delete file
+		tumb.delete();
+
+		return DatatypeConverter.printBase64Binary(output.toByteArray());
+	}
 	private String imgToBase64( BufferedImage bi ) throws IOException{
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		ImageIO.write(bi, "jpg", output);
