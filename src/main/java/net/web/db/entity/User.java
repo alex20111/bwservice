@@ -141,7 +141,7 @@ public class User {
 		if (web == null) {
 			return false;
 		}else {
-			return userWeb.stream().anyMatch(wa -> wa.getWebsiteAccess() == web);//.findAny();
+			return userWeb.stream().anyMatch(wa -> wa.getWebsiteAccess() == web && wa.getAccessLevel() != AccessLevel.UNAUTHORIZED);//.findAny();
 		}
 		
 	}
