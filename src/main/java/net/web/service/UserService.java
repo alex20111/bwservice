@@ -77,9 +77,9 @@ public class UserService {
 		try {
 			User userReq = (User)servletRequest.getAttribute(Constants.USER_TOKEN);// contains id and username
 
-			//check if the user has access to edit the users..
-			if (userReq.hasPermission(AccessLevel.ADMIN, userReq.getCurrentWebsite())) {
-				logger.debug("has permission to update the user");
+			//check if the user has access to edit the users.. Or the user editing is the same logged in user.
+			if (userReq.hasPermission(AccessLevel.ADMIN, userReq.getCurrentWebsite()) || userReq.getId() == user.getId()) {
+				logger.debug("has permission to update the user. ");
 
 				UserManager um = new UserManager();
 
@@ -106,7 +106,7 @@ public class UserService {
 				msg = new Message("No Access", "User does not have permission");
 			}
 		}catch(Exception ex) {
-			ex.printStackTrace();
+			logger.error("Error: " , ex);
 			status = Status.INTERNAL_SERVER_ERROR;
 			msg = new Message("Server error", ex.getMessage());
 		}
@@ -234,7 +234,7 @@ public class UserService {
 
 			int userId = Integer.parseInt(id);
 			
-			//check if the user has access to edit the users..
+			//check if the user has access to edit the users.. Or it's the current user requesting to edit himself
 			if (userReq.hasPermission(AccessLevel.ADMIN, userReq.getCurrentWebsite()) || userReq.getId() == userId ) {
 				logger.debug("has permission to get the user. User: " + userReq.getUserName());
 
