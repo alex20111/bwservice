@@ -14,13 +14,13 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import home.common.data.Temperature;
 import net.web.common.Constants;
 import net.web.db.entity.User;
 import net.web.enums.AccessLevel;
 import net.web.enums.Website;
 import net.web.service.filter.TokenValidation;
 import net.web.service.model.Message;
-import net.web.service.model.Temperature;
 
 @Path("temperature")
 public class TemperatureService {
