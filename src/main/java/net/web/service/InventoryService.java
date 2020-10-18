@@ -453,6 +453,43 @@ public class InventoryService {
 
 		return Response.status(status).entity(msg).build();
 	}
+	@Path("search/{searchQuery}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@TokenValidation
+	public Response search(@PathParam("searchQuery") String text) {
+		logger.debug("Search text: " + text);		
+		
+		Message msg = null;
+		Status status = Status.FORBIDDEN;
+		try {
+			User userReq = (User)servletRequest.getAttribute(Constants.USER_TOKEN);// contains id and username
+			//check if the user has access to edit the users..
+			if (userReq.hasPermission(AccessLevel.REGULAR, userReq.getCurrentWebsite())) {
+				logger.debug("Has access.. Search inventory");
+
+				InventoryManager im = new InventoryManager();
+				List<Inventory> invList = im.search(text);
+				
+				InventoryGroup ig = new InventoryGroup();
+				ig.setInvItems(invList);
+				ig.setGroupName("Search Result");
+				ig.setNumberOfItems(invList.size());
+
+				return Response.ok().entity(ig).build();
+
+			}
+		}catch(Exception ex) {
+			logger.error("error in inventory search" , ex);
+			status = Status.INTERNAL_SERVER_ERROR;
+			msg = new Message("Server error", ex.getMessage());
+		}
+		return Response.status(status).entity(msg).build();
+
+	}
+	
+	
 	private String imageToBase64(InputStream fileInputStream, FormDataContentDisposition fileMetaData) throws IOException {
 		String UPLOAD_PATH = "c:\\temp\\"; //TODO TEMP DIR
 		String fileName = fileMetaData.getFileName() + UUID.randomUUID();				

@@ -4,8 +4,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import net.web.db.entity.Inventory;
 import net.web.db.entity.InventoryGroup;
@@ -195,5 +197,31 @@ public class InventoryManager {
 	
 	public void updateInvGroup(InventoryGroup grp) throws ClassNotFoundException, SQLException{
 		sql.updateInvGroup(grp);
+	}
+	
+	public List<Inventory> search(String search) throws ClassNotFoundException, SQLException{
+		
+		
+//		List<Inventory> finalList = new ArrayList<>();
+//				
+//		//remove any dupplicates. 
+//		List<Inventory> invList = sql.search(search);
+//		
+//		for(Inventory i: invList) {
+//			boolean found = false;
+//			for(Inventory invFinal : finalList) {
+//				if (i.getId() == invFinal.getId()) {
+//					found = true;
+//					break;
+//				}
+//			}
+//			
+//			if (!found) {
+//				finalList.add(i);
+//			}
+//		}
+		
+	
+		return  sql.search(search);		
 	}
 }

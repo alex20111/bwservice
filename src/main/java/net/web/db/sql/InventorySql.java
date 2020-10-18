@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -519,6 +520,73 @@ public class InventorySql {
 		}
 
 	}
+	
+	public List<Inventory> search(String str) throws SQLException, ClassNotFoundException{  //TODO
+		
+		DBConnection con = null;
+		List<Inventory> invList = new ArrayList<>();
+
+		Map<Integer, List<InventoryRef>> inventoryRefMap = new HashMap<>();
+		Map<Integer, Inventory> inventoryMap = new TreeMap<>(); // Treeset	
+		try{
+			
+					
+			con = getConnection();			
+
+			String query = "SELECT * FROM " + Inventory.TBL_NAME + " AS inv left join " + InventoryRef.TBL_NAME + " AS invRef on invRef." + InventoryRef.INVENTORY_ID_FK + " = " +
+							"inv." + Inventory.ID + " where "
+									+ "inv."+Inventory.NAME +" LIKE '%" + str + "%' OR "
+									+ "inv."+Inventory.CATEGORY +" LIKE '%" + str + "%' OR "
+									+ "inv."+Inventory.DETAILS +" LIKE '%" + str + "%' OR "
+									+ "inv."+Inventory.QTY +" LIKE '%" + str + "%' OR "
+									+ "invRef."+InventoryRef.REF_NAME +" LIKE '%" + str + "%' ";
+
+//			System.out.println("Query!!!!!!!!!!!!! : " + query);
+			
+			ResultSet rs = con.createSelectQuery(query)
+					.getSelectResultSet();
+
+			while (rs.next()) {
+				Integer id = rs.getInt(Inventory.ID);
+				Inventory inv = inventoryMap.get(id);
+				
+				if (inv == null) {
+					inv = new Inventory(rs);
+					
+					inventoryMap.put(id, inv);
+					inventoryRefMap.put(id, new ArrayList<>());
+				}
+				
+				Integer refId = rs.getInt(InventoryRef.ID);
+				
+				if (!rs.wasNull()) {
+					List<InventoryRef> invRefList = inventoryRefMap.get(id);
+					InventoryRef invRef = new InventoryRef(rs);
+					invRefList.add(invRef);
+									
+				}
+				
+//				
+//				Inventory inv = new Inventory(rs);
+//				invList.add(inv);
+			}
+
+		}finally{
+			if (con!=null){
+				con.close();
+			}
+		}
+		//add to list
+		for(Inventory i : inventoryMap.values()) {
+			i.setReferences(inventoryRefMap.get(i.getId()));
+			invList.add(i);
+		}
+		
+		
+		return invList;
+
+	}
+	
 	private DBConnection getConnection() throws ClassNotFoundException, SQLException{
 
 		Database db = new Database(Constants.DB_MYSQL,Constants.DB_USER, Constants.DB_PASS, DbClass.Mysql);
