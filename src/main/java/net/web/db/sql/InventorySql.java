@@ -9,7 +9,6 @@ import net.web.common.Constants;
 import net.web.db.entity.Inventory;
 import net.web.db.entity.InventoryGroup;
 import net.web.db.entity.InventoryRef;
-import net.web.db.entity.User;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -521,7 +520,7 @@ public class InventorySql {
 
 	}
 	
-	public List<Inventory> search(String str) throws SQLException, ClassNotFoundException{  //TODO
+	public List<Inventory> search(String str) throws SQLException, ClassNotFoundException{ 
 		
 		DBConnection con = null;
 		List<Inventory> invList = new ArrayList<>();
@@ -547,6 +546,7 @@ public class InventorySql {
 					.getSelectResultSet();
 
 			while (rs.next()) {
+			
 				Integer id = rs.getInt(Inventory.ID);
 				Inventory inv = inventoryMap.get(id);
 				
@@ -557,18 +557,16 @@ public class InventorySql {
 					inventoryRefMap.put(id, new ArrayList<>());
 				}
 				
-				Integer refId = rs.getInt(InventoryRef.ID);
-				
+				String refName = rs.getString(InventoryRef.REF_NAME);
+//				System.out.println("refName: " + refName);
+				 
 				if (!rs.wasNull()) {
 					List<InventoryRef> invRefList = inventoryRefMap.get(id);
 					InventoryRef invRef = new InventoryRef(rs);
 					invRefList.add(invRef);
 									
 				}
-				
-//				
-//				Inventory inv = new Inventory(rs);
-//				invList.add(inv);
+
 			}
 
 		}finally{

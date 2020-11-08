@@ -27,6 +27,9 @@ public class InventoryRef {
 	public InventoryRef(ResultSet rs) throws SQLException{
 		this.id 			= rs.getInt(ID);
 		this.referenceName 	= rs.getString(REF_NAME);
+		
+//		System.out.println("Id of ref: " + this.id + "  ref: " + rs.getString(REF_TYPE));
+		
 		this.type 			= RefType.valueOf(rs.getString(REF_TYPE));
 		this.inventoryId 	= rs.getInt(INVENTORY_ID_FK);	
 
