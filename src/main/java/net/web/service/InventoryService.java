@@ -38,6 +38,7 @@ import net.web.db.entity.Inventory;
 import net.web.db.entity.InventoryGroup;
 import net.web.db.entity.User;
 import net.web.enums.AccessLevel;
+import net.web.enums.OsType;
 import net.web.exception.ValidationException;
 import net.web.manager.InventoryManager;
 import net.web.service.filter.TokenValidation;
@@ -491,7 +492,15 @@ public class InventoryService {
 	
 	
 	private String imageToBase64(InputStream fileInputStream, FormDataContentDisposition fileMetaData) throws IOException {
-		String UPLOAD_PATH = "c:\\temp\\"; //TODO TEMP DIR
+		String UPLOAD_PATH ;
+		
+		if(Constants.osType == OsType.WINDOWS) {
+			UPLOAD_PATH = "c:\\temp\\"; 
+		}else {
+			UPLOAD_PATH = "/tmp/"; 
+		}
+		
+		
 		String fileName = fileMetaData.getFileName() + UUID.randomUUID();				
 
 		File tumb = new File(UPLOAD_PATH + fileName);

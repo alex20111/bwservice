@@ -2,6 +2,8 @@ package net.web.common;
 
 import java.security.Key;
 
+import net.web.enums.OsType;
+
 public class Constants {
 
 	public static final String DB_URL = "c:\\dev\\service";
@@ -14,4 +16,6 @@ public class Constants {
 	public static final String USER_TOKEN = "userRequest";
 		
 	public static Key key; 
+	
+	public static OsType osType;
 }

@@ -15,6 +15,7 @@ import io.jsonwebtoken.security.Keys;
 import net.web.common.Constants;
 import net.web.db.sql.InventorySql;
 import net.web.db.sql.UserSql;
+import net.web.enums.OsType;
 import net.web.manager.UserManager;
 
 
@@ -53,6 +54,17 @@ public class InitManager implements ServletContextListener    {
 			
 			InventorySql invSql = new InventorySql();
 			invSql.createTables();
+			
+			
+			//find OS type to set tmp directory
+			String osType = System.getProperty("os.name");
+			if (osType.contains("Windows")) {
+				Constants.osType = OsType.WINDOWS;
+			}else {
+				Constants.osType = OsType.LINUX;
+			}
+			
+			
 		} catch (ClassNotFoundException | SQLException |  IOException e) {
 			// TODO Auto-generated catch block
 			logger.error("error in init",  e);
