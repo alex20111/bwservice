@@ -51,7 +51,7 @@ public class UserSql {
 				columns.add(new ColumnType(User.EMAIL, false).VarChar(300));
 				columns.add(new ColumnType(User.LAST_LOGIN, false).TimeStamp());
 				columns.add(new ColumnType(User.NBR_TRIES, false).INT());
-				columns.add(new ColumnType(User.AUTH_TOKEN, false).VarChar(1000));
+				columns.add(new ColumnType(User.AUTH_TOKEN, false).VarChar(1000)); 
 
 				con.createTable(User.TBL_NAME, columns);	
 

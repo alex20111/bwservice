@@ -14,7 +14,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import net.web.common.Constants;
 import net.web.db.sql.InventorySql;
-import net.web.db.sql.UserSql;
+import net.web.db.sql.TempSql;
 import net.web.enums.OsType;
 import net.web.manager.UserManager;
 
@@ -22,7 +22,7 @@ import net.web.manager.UserManager;
 
 public class InitManager implements ServletContextListener    {
 
-	private static final Logger logger = LogManager.getLogger(UserSql.class);
+	private static final Logger logger = LogManager.getLogger(InitManager.class);
 	
 
 	/* Application Startup Event */
@@ -54,6 +54,9 @@ public class InitManager implements ServletContextListener    {
 			
 			InventorySql invSql = new InventorySql();
 			invSql.createTables();
+			
+			TempSql tmpSql = new TempSql();
+			tmpSql.createTable();
 			
 			
 			//find OS type to set tmp directory
